@@ -17,6 +17,10 @@ Node rules:
 - x: integer 80–880 — place the most central concept near 480
 - y: integer 80–620 — spread nodes vertically to avoid overlap
 - Each node is roughly 130px wide × 50px tall; keep nodes at least 140px apart
+- resources: 3–5 high-quality online links for learning this concept. Each resource is
+  { "title": short title, "url": full https URL, "type": one of "article"|"video"|"course"|"docs"|"tool", "free": true|false }.
+  Only use reputable, well-known sources you are confident exist (e.g. Wikipedia, official
+  documentation, established universities, well-known courses/videos). Prefer free resources.
 
 Edge rules:
 - 1–2 edges per concept on average; avoid redundant edges
@@ -33,7 +37,8 @@ Output ONLY valid JSON with this exact shape:
   "title": "short descriptive title of the material",
   "subtitle": "course or document name if identifiable",
   "nodes": [
-    { "id": "...", "label": "...", "def": "...", "source": "...", "x": 0, "y": 0 }
+    { "id": "...", "label": "...", "def": "...", "source": "...", "x": 0, "y": 0,
+      "resources": [ { "title": "...", "url": "https://...", "type": "article", "free": true } ] }
   ],
   "edges": [
     { "from": "...", "to": "...", "label": "..." }
@@ -97,6 +102,13 @@ export async function POST(request) {
     // Sanitize: ensure all edge refs point to real nodes
     const nodeIds = new Set(result.nodes.map((n) => n.id));
     result.edges = result.edges.filter((e) => nodeIds.has(e.from) && nodeIds.has(e.to));
+
+    // Sanitize: coerce each node's resources to a clean array of valid links
+    result.nodes.forEach((n) => {
+      n.resources = Array.isArray(n.resources)
+        ? n.resources.filter((r) => r && r.url && r.title)
+        : [];
+    });
 
     return NextResponse.json(result);
   } catch (err) {

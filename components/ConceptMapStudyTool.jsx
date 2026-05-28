@@ -3,18 +3,48 @@ import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 
 // ─── Demo Data (used when no props are passed) ────────────────────────────────
 const DEMO_NODES = [
-  { id: "clt", label: "Cognitive Load\nTheory", def: "A theory by John Sweller (1988) proposing that learning is constrained by the limited capacity of working memory. Effective instruction design minimizes unnecessary load while maximizing schema formation.", source: "Slide 2 · Sweller (1988)", x: 420, y: 260 },
-  { id: "wm", label: "Working\nMemory", def: "The cognitive system responsible for temporarily holding and processing information. It has limited capacity (~4 chunks) and duration, forming the bottleneck that CLT addresses.", source: "Slide 3", x: 140, y: 110 },
-  { id: "ltm", label: "Long-term\nMemory", def: "Virtually unlimited store of knowledge organized as schemas. Learning = transferring organized info from working memory to long-term memory.", source: "Slide 3", x: 620, y: 100 },
-  { id: "dct", label: "Dual-Channel\nTheory", def: "Baddeley's model proposing that working memory has separate channels for visual/spatial and auditory/verbal information. Instruction can leverage both channels to increase effective capacity.", source: "Slide 8", x: 820, y: 100 },
-  { id: "il", label: "Intrinsic\nLoad", def: "The inherent complexity of the material being learned, determined by element interactivity. Cannot be reduced by instruction design — it's a property of the content itself relative to the learner's expertise.", source: "Slide 5", x: 180, y: 400 },
-  { id: "el", label: "Extraneous\nLoad", def: "Unnecessary cognitive load caused by poor instructional design — irrelevant visuals, split sources of info, redundant text. This is the load instructors should minimize.", source: "Slide 6", x: 370, y: 490 },
-  { id: "gl", label: "Germane\nLoad", def: "Cognitive effort dedicated to building and automating schemas. Unlike extraneous load, germane load is productive — it's the 'good' cognitive work of actually learning.", source: "Slide 7", x: 560, y: 490 },
-  { id: "schema", label: "Schema", def: "An organized knowledge structure in long-term memory that allows complex information to be treated as a single element in working memory. Expertise = having rich, automated schemas.", source: "Slide 4", x: 680, y: 330 },
-  { id: "ere", label: "Expertise\nReversal Effect", def: "Instructional techniques that help novices (like worked examples) can actually harm experts by imposing redundant information. Instruction should adapt to the learner's level.", source: "Slide 12", x: 850, y: 310 },
-  { id: "sae", label: "Split-Attention\nEffect", def: "When learners must mentally integrate multiple sources of information (e.g., a diagram and separate text), extraneous load increases. Solution: physically integrate related information.", source: "Slide 9", x: 130, y: 560 },
-  { id: "re", label: "Redundancy\nEffect", def: "When the same information is presented in multiple unnecessary forms (e.g., identical text read aloud and displayed), it increases extraneous load rather than helping.", source: "Slide 10", x: 370, y: 620 },
-  { id: "we", label: "Worked\nExamples", def: "Step-by-step demonstrations of how to solve problems. Reduces extraneous load for novices by showing the solution path rather than requiring them to search for it.", source: "Slide 11", x: 740, y: 470 },
+  { id: "clt", label: "Cognitive Load\nTheory", def: "A theory by John Sweller (1988) proposing that learning is constrained by the limited capacity of working memory. Effective instruction design minimizes unnecessary load while maximizing schema formation.", source: "Slide 2 · Sweller (1988)", x: 420, y: 260, resources: [
+    { title: "Cognitive load theory (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cognitive_load", type: "article", free: true },
+    { title: "Sweller — Cognitive Load During Problem Solving", url: "https://onlinelibrary.wiley.com/doi/10.1207/s15516709cog1202_4", type: "docs", free: false },
+    { title: "Cognitive Load Theory explained (video)", url: "https://www.youtube.com/watch?v=Y6Sgp7y178k", type: "video", free: true },
+  ] },
+  { id: "wm", label: "Working\nMemory", def: "The cognitive system responsible for temporarily holding and processing information. It has limited capacity (~4 chunks) and duration, forming the bottleneck that CLT addresses.", source: "Slide 3", x: 140, y: 110, resources: [
+    { title: "Working memory (Wikipedia)", url: "https://en.wikipedia.org/wiki/Working_memory", type: "article", free: true },
+    { title: "Miller — The Magical Number Seven", url: "https://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two", type: "article", free: true },
+  ] },
+  { id: "ltm", label: "Long-term\nMemory", def: "Virtually unlimited store of knowledge organized as schemas. Learning = transferring organized info from working memory to long-term memory.", source: "Slide 3", x: 620, y: 100, resources: [
+    { title: "Long-term memory (Wikipedia)", url: "https://en.wikipedia.org/wiki/Long-term_memory", type: "article", free: true },
+    { title: "Memory — Simply Psychology", url: "https://www.simplypsychology.org/memory.html", type: "article", free: true },
+  ] },
+  { id: "dct", label: "Dual-Channel\nTheory", def: "Baddeley's model proposing that working memory has separate channels for visual/spatial and auditory/verbal information. Instruction can leverage both channels to increase effective capacity.", source: "Slide 8", x: 820, y: 100, resources: [
+    { title: "Baddeley's model of working memory", url: "https://en.wikipedia.org/wiki/Baddeley%27s_model_of_working_memory", type: "article", free: true },
+    { title: "Dual-coding theory (Wikipedia)", url: "https://en.wikipedia.org/wiki/Dual-coding_theory", type: "article", free: true },
+  ] },
+  { id: "il", label: "Intrinsic\nLoad", def: "The inherent complexity of the material being learned, determined by element interactivity. Cannot be reduced by instruction design — it's a property of the content itself relative to the learner's expertise.", source: "Slide 5", x: 180, y: 400, resources: [
+    { title: "Element interactivity & intrinsic load", url: "https://en.wikipedia.org/wiki/Cognitive_load#Intrinsic", type: "article", free: true },
+  ] },
+  { id: "el", label: "Extraneous\nLoad", def: "Unnecessary cognitive load caused by poor instructional design — irrelevant visuals, split sources of info, redundant text. This is the load instructors should minimize.", source: "Slide 6", x: 370, y: 490, resources: [
+    { title: "Extraneous load (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cognitive_load#Extraneous", type: "article", free: true },
+  ] },
+  { id: "gl", label: "Germane\nLoad", def: "Cognitive effort dedicated to building and automating schemas. Unlike extraneous load, germane load is productive — it's the 'good' cognitive work of actually learning.", source: "Slide 7", x: 560, y: 490, resources: [
+    { title: "Germane load (Wikipedia)", url: "https://en.wikipedia.org/wiki/Cognitive_load#Germane", type: "article", free: true },
+  ] },
+  { id: "schema", label: "Schema", def: "An organized knowledge structure in long-term memory that allows complex information to be treated as a single element in working memory. Expertise = having rich, automated schemas.", source: "Slide 4", x: 680, y: 330, resources: [
+    { title: "Schema (psychology) — Wikipedia", url: "https://en.wikipedia.org/wiki/Schema_(psychology)", type: "article", free: true },
+    { title: "Schema theory — Simply Psychology", url: "https://www.simplypsychology.org/what-is-a-schema.html", type: "article", free: true },
+  ] },
+  { id: "ere", label: "Expertise\nReversal Effect", def: "Instructional techniques that help novices (like worked examples) can actually harm experts by imposing redundant information. Instruction should adapt to the learner's level.", source: "Slide 12", x: 850, y: 310, resources: [
+    { title: "Expertise reversal effect (Wikipedia)", url: "https://en.wikipedia.org/wiki/Expertise_reversal_effect", type: "article", free: true },
+  ] },
+  { id: "sae", label: "Split-Attention\nEffect", def: "When learners must mentally integrate multiple sources of information (e.g., a diagram and separate text), extraneous load increases. Solution: physically integrate related information.", source: "Slide 9", x: 130, y: 560, resources: [
+    { title: "Split attention effect (Wikipedia)", url: "https://en.wikipedia.org/wiki/Split_attention_effect", type: "article", free: true },
+  ] },
+  { id: "re", label: "Redundancy\nEffect", def: "When the same information is presented in multiple unnecessary forms (e.g., identical text read aloud and displayed), it increases extraneous load rather than helping.", source: "Slide 10", x: 370, y: 620, resources: [
+    { title: "Redundancy effect (Wikipedia)", url: "https://en.wikipedia.org/wiki/Redundancy_(information_theory)", type: "article", free: true },
+  ] },
+  { id: "we", label: "Worked\nExamples", def: "Step-by-step demonstrations of how to solve problems. Reduces extraneous load for novices by showing the solution path rather than requiring them to search for it.", source: "Slide 11", x: 740, y: 470, resources: [
+    { title: "Worked-example effect (Wikipedia)", url: "https://en.wikipedia.org/wiki/Worked-example_effect", type: "article", free: true },
+  ] },
 ];
 
 const DEMO_EDGES = [
@@ -41,6 +71,14 @@ const TAG_COLORS = {
   needs_work: { bg: "#FEE2E2", border: "#F87171", text: "#991B1B", dot: "#EF4444" },
 };
 
+const RESOURCE_TYPES = {
+  article: { label: "Article", bg: "#EEF2FF", text: "#4338CA" },
+  video: { label: "Video", bg: "#FEF2F2", text: "#B91C1C" },
+  course: { label: "Course", bg: "#ECFDF5", text: "#047857" },
+  docs: { label: "Docs", bg: "#F5F3FF", text: "#6D28D9" },
+  tool: { label: "Tool", bg: "#FFF7ED", text: "#C2410C" },
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getNodeById(nodes, id) { return nodes.find((n) => n.id === id); }
 
@@ -59,6 +97,52 @@ function getConnected(edges, nodeId) {
 
 function getPrereqs(edges, nodeId) {
   return edges.filter((e) => e.to === nodeId).map((e) => e.from);
+}
+
+// Flatten the resources across a set of nodes, deduped by URL.
+function mergeResources(nodes) {
+  const seen = new Set();
+  const merged = [];
+  nodes.forEach((n) => {
+    (n.resources || []).forEach((r) => {
+      if (r && r.url && !seen.has(r.url)) {
+        seen.add(r.url);
+        merged.push(r);
+      }
+    });
+  });
+  return merged;
+}
+
+// A single resource link row (roadmap.sh-style: type badge + title link).
+function ResourceRow({ resource }) {
+  const t = RESOURCE_TYPES[resource.type] || RESOURCE_TYPES.article;
+  return (
+    <a
+      href={resource.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
+        borderRadius: 8, background: "#F9FAFB", border: "1px solid #F3F4F6",
+        textDecoration: "none", transition: "all 0.15s ease",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = "#F3F4F6"; e.currentTarget.style.borderColor = "#E5E7EB"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = "#F9FAFB"; e.currentTarget.style.borderColor = "#F3F4F6"; }}
+    >
+      <span style={{
+        fontSize: 9.5, fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase",
+        padding: "2px 6px", borderRadius: 5, background: t.bg, color: t.text, flexShrink: 0,
+      }}>{t.label}</span>
+      <span style={{ flex: 1, fontSize: 12.5, color: "#374151", fontWeight: 500, lineHeight: 1.35 }}>
+        {resource.title}
+      </span>
+      {resource.free && (
+        <span style={{ fontSize: 9.5, fontWeight: 600, color: "#059669", flexShrink: 0 }}>Free</span>
+      )}
+      <span style={{ fontSize: 11, color: "#9CA3AF", flexShrink: 0 }}>↗</span>
+    </a>
+  );
 }
 
 function computeStudyPath(nodes, edges, tags) {
@@ -190,7 +274,7 @@ function StudyPath({ path, nodes, onNodeClick, expanded, onToggle }) {
   );
 }
 
-function SidePanel({ node, nodes, edges, tags, onTag, onClose, onNavigate }) {
+function SidePanel({ node, nodes, edges, tags, onTag, onClose, onNavigate, subgraphNodes, synthesis, knowledgeLoading }) {
   if (!node) return null;
   const tag = tags[node.id];
   const related = [];
@@ -200,6 +284,10 @@ function SidePanel({ node, nodes, edges, tags, onTag, onClose, onNavigate }) {
     if (e.to === node.id && !related.find((r) => r.id === e.from))
       related.push({ id: e.from, label: getNodeById(nodes, e.from)?.label.replace("\n", " "), rel: e.label });
   });
+
+  const nodeResources = node.resources || [];
+  const mergedResources = mergeResources(subgraphNodes || [node]);
+  const labelStyle = { fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9CA3AF", marginBottom: 8 };
 
   return (
     <div style={{
@@ -247,6 +335,16 @@ function SidePanel({ node, nodes, edges, tags, onTag, onClose, onNavigate }) {
         </div>
       </div>
 
+      {/* Resources for this concept */}
+      {nodeResources.length > 0 && (
+        <div style={{ marginBottom: 22 }}>
+          <div style={labelStyle}>Resources</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {nodeResources.map((r) => <ResourceRow key={r.url} resource={r} />)}
+          </div>
+        </div>
+      )}
+
       {/* Related */}
       <div style={{ marginBottom: 22 }}>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9CA3AF", marginBottom: 8 }}>
@@ -269,6 +367,34 @@ function SidePanel({ node, nodes, edges, tags, onTag, onClose, onNavigate }) {
           ))}
         </div>
       </div>
+
+      {/* Connected Knowledge — the grand knowledge view for the selected subgraph */}
+      {subgraphNodes && subgraphNodes.length > 1 && (
+        <div style={{ marginBottom: 22, paddingTop: 18, borderTop: "1px solid #E5E7EB" }}>
+          <div style={{ ...labelStyle, color: "#6366F1" }}>
+            Connected Knowledge · {subgraphNodes.length} concepts
+          </div>
+          {knowledgeLoading ? (
+            <div style={{ fontSize: 12.5, color: "#9CA3AF", lineHeight: 1.6, marginBottom: 12 }}>
+              Synthesizing how these concepts connect…
+            </div>
+          ) : synthesis ? (
+            <p style={{ fontSize: 13, lineHeight: 1.6, color: "#374151", marginTop: 0, marginBottom: 14 }}>
+              {synthesis}
+            </p>
+          ) : null}
+          {mergedResources.length > 0 && (
+            <>
+              <div style={{ fontSize: 10, fontWeight: 600, color: "#9CA3AF", marginBottom: 8 }}>
+                {mergedResources.length} resources across this neighborhood
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {mergedResources.map((r) => <ResourceRow key={r.url} resource={r} />)}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Source */}
       <div>
@@ -304,11 +430,14 @@ export default function ConceptMapStudyTool({
   const [pathExpanded, setPathExpanded] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pulsePhase, setPulsePhase] = useState(0);
+  const [knowledge, setKnowledge] = useState({}); // { [nodeId]: { synthesis } } cache
+  const [knowledgeLoading, setKnowledgeLoading] = useState(false);
 
   useEffect(() => {
-    // Reset tags when the map data changes
+    // Reset tags + cached subgraph syntheses when the map data changes
     setSelected(null);
     setTags({});
+    setKnowledge({});
   }, [propNodes]);
 
   useEffect(() => {
@@ -335,6 +464,44 @@ export default function ConceptMapStudyTool({
 
   const selectedNode = selected ? getNodeById(NODES, selected) : null;
   const hoveredNode = hovered ? getNodeById(NODES, hovered) : null;
+
+  // The "subgraph" for the grand-knowledge view is the existing highlight set:
+  // the selected node plus its directly-connected neighbors.
+  const subgraphNodes = useMemo(() => {
+    if (!selectedNode) return null;
+    const ids = new Set(connected.nodes);
+    ids.add(selectedNode.id);
+    return NODES.filter((n) => ids.has(n.id));
+  }, [selectedNode, connected, NODES]);
+
+  // Fetch the AI synthesis for the selected node's subgraph on demand, cached per node.
+  useEffect(() => {
+    if (!selectedNode || !subgraphNodes || subgraphNodes.length < 2) return;
+    if (knowledge[selectedNode.id]) return;
+
+    let cancelled = false;
+    setKnowledgeLoading(true);
+    fetch("/api/subgraph-knowledge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        topic: selectedNode.label.replace("\n", " "),
+        nodes: subgraphNodes.map((n) => ({ label: n.label, def: n.def })),
+        edges: EDGES.filter((e) => connected.nodes.has(e.from) && connected.nodes.has(e.to)),
+      }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setKnowledge((prev) => ({ ...prev, [selectedNode.id]: { synthesis: data.synthesis || null } }));
+      })
+      .catch(() => {
+        if (!cancelled) setKnowledge((prev) => ({ ...prev, [selectedNode.id]: { synthesis: null } }));
+      })
+      .finally(() => { if (!cancelled) setKnowledgeLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [selectedNode, subgraphNodes, connected, EDGES, knowledge]);
 
   const bg = darkMode ? "#1A1A1F" : "#FAF8F5";
   const cardBg = darkMode ? "#25252B" : "#FFFFFF";
@@ -574,6 +741,9 @@ export default function ConceptMapStudyTool({
             onTag={handleTag}
             onClose={() => setSelected(null)}
             onNavigate={handleSelectNode}
+            subgraphNodes={subgraphNodes}
+            synthesis={knowledge[selected]?.synthesis}
+            knowledgeLoading={knowledgeLoading && !knowledge[selected]}
           />
         )}
       </div>

@@ -28,6 +28,16 @@ export default function Home() {
 
   const handleGenerate = async () => {
     if (!hasInput) return;
+
+    // Vercel caps request bodies at ~4.5 MB; reject early so we never send a
+    // request that comes back as a non-JSON "Request Entity Too Large" error.
+    const MAX_BYTES = 4_000_000;
+    const totalBytes = files.reduce((sum, f) => sum + f.size, 0) + new Blob([text]).size;
+    if (totalBytes > MAX_BYTES) {
+      setError("Your files are too large (limit ~4 MB total). Remove some files or paste the text directly.");
+      return;
+    }
+
     setStage("loading");
     setError(null);
 
@@ -37,12 +47,27 @@ export default function Home() {
 
     try {
       const res = await fetch("/api/generate-map", { method: "POST", body: formData });
-      if (!res.ok) {
-        let errMsg = `Request failed (${res.status})`;
-        try { const err = await res.json(); errMsg = err.error || errMsg; } catch { errMsg = await res.text().catch(() => errMsg); }
+
+      // Read the body exactly once as text, then parse defensively. The server
+      // (or Vercel's platform) can reply with non-JSON — e.g. the plain-text
+      // "Request Entity Too Large" when an upload exceeds the request limit —
+      // so we must never hand a non-JSON body straight to JSON.parse.
+      const raw = await res.text();
+      let data = null;
+      if (raw) {
+        try { data = JSON.parse(raw); } catch { data = null; }
+      }
+
+      if (!res.ok || !data) {
+        let errMsg = data?.error || `Request failed (${res.status})`;
+        if (res.status === 413 || /request entity too large/i.test(raw)) {
+          errMsg = "Your upload is too large (the server accepts ~4.5 MB per request). Try fewer or smaller files, or paste the text directly.";
+        } else if (!data && raw) {
+          errMsg = raw.slice(0, 200);
+        }
         throw new Error(errMsg);
       }
-      const data = await res.json();
+
       setMapData(data);
       setStage("map");
     } catch (err) {

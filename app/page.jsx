@@ -38,8 +38,9 @@ export default function Home() {
     try {
       const res = await fetch("/api/generate-map", { method: "POST", body: formData });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to generate map");
+        let errMsg = `Request failed (${res.status})`;
+        try { const err = await res.json(); errMsg = err.error || errMsg; } catch { errMsg = await res.text().catch(() => errMsg); }
+        throw new Error(errMsg);
       }
       const data = await res.json();
       setMapData(data);

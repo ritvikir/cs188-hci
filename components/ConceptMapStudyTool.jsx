@@ -274,7 +274,7 @@ function StudyPath({ path, nodes, onNodeClick, expanded, onToggle }) {
   );
 }
 
-function SidePanel({ node, nodes, edges, tags, onTag, onClose, onNavigate, subgraphNodes, synthesis, knowledgeLoading }) {
+function SidePanel({ node, nodes, edges, tags, onTag, notes, onNote, onClose, onNavigate, subgraphNodes, synthesis, knowledgeLoading }) {
   if (!node) return null;
   const tag = tags[node.id];
   const related = [];
@@ -396,6 +396,25 @@ function SidePanel({ node, nodes, edges, tags, onTag, onClose, onNavigate, subgr
         </div>
       )}
 
+      {/* My Note */}
+      <div style={{ marginBottom: 22 }}>
+        <div style={labelStyle}>My Note</div>
+        <textarea
+          value={notes[node.id] || ""}
+          onChange={(e) => onNote(node.id, e.target.value)}
+          placeholder="Add a note for this concept…"
+          rows={3}
+          style={{
+            width: "100%", boxSizing: "border-box", resize: "vertical", minHeight: 60,
+            padding: "10px 12px", borderRadius: 8, border: "1px solid #E5E7EB",
+            background: "#F9FAFB", fontSize: 12.5, lineHeight: 1.5, color: "#374151",
+            fontFamily: "'DM Sans', sans-serif", outline: "none",
+          }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = "#6366F1"; e.currentTarget.style.background = "white"; }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.background = "#F9FAFB"; }}
+        />
+      </div>
+
       {/* Source */}
       <div>
         <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9CA3AF", marginBottom: 8 }}>
@@ -425,6 +444,7 @@ export default function ConceptMapStudyTool({
   const [selected, setSelected] = useState(null);
   const [hovered, setHovered] = useState(null);
   const [tags, setTags] = useState({});
+  const [notes, setNotes] = useState({}); // { [nodeId]: noteText }
   const [showEdgeLabels, setShowEdgeLabels] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [pathExpanded, setPathExpanded] = useState(true);
@@ -437,6 +457,7 @@ export default function ConceptMapStudyTool({
     // Reset tags + cached subgraph syntheses when the map data changes
     setSelected(null);
     setTags({});
+    setNotes({});
     setKnowledge({});
   }, [propNodes]);
 
@@ -456,6 +477,10 @@ export default function ConceptMapStudyTool({
       if (prev[nodeId] === tag) { const next = { ...prev }; delete next[nodeId]; return next; }
       return { ...prev, [nodeId]: tag };
     });
+  }, []);
+
+  const handleNote = useCallback((nodeId, text) => {
+    setNotes((prev) => ({ ...prev, [nodeId]: text }));
   }, []);
 
   const handleSelectNode = useCallback((id) => {
@@ -739,6 +764,8 @@ export default function ConceptMapStudyTool({
             edges={EDGES}
             tags={tags}
             onTag={handleTag}
+            notes={notes}
+            onNote={handleNote}
             onClose={() => setSelected(null)}
             onNavigate={handleSelectNode}
             subgraphNodes={subgraphNodes}
